@@ -1,22 +1,20 @@
 #include "main.h"
 #include <stdlib.h>
-#include <stdarg.h>
-
+#include <stdio.h>
 
 /**
  * printIdentifiers - prints special characters
  * @next: character after the %
- * @arg: argument for the identifier
- * Return: args printed
- * (expect the nul character used to end strings)
- *
+ * @arg: argument for the indentifier
+ * Return: the number of characters printed
+ * (excluding the null byte used to end output to strings)
  */
 
-int printIdentifiers ( char next , va_list arg)
+int printIdentifiers(char next, va_list arg)
 {
-	int indexFunc; 
+	int functsIndex;
 
-	structIdentifier Funcs [] = {
+	identifierStruct functs[] = {
 		{"c", print_char},
 		{"s", print_str},
 		{"d", print_int},
@@ -30,67 +28,65 @@ int printIdentifiers ( char next , va_list arg)
 		{NULL, NULL}
 	};
 
-	for (indexFunc = 0; Funcs[indexFunc].identifier != NULL ; indexFunc++)
+	for (functsIndex = 0; functs[functsIndex].indentifier != NULL; functsIndex++)
 	{
-		if(Funcs[indexFunc].identifier[0] == next)
-			return Funcs[indexFunc].printer(arg);
+		if (functs[functsIndex].indentifier[0] == next)
+			return (functs[functsIndex].printer(arg));
 	}
 	return (0);
 }
 
-
-
 /**
- * _printf - produces output according to a format
- * @*format - pointer to character string
- * Return :  number of characters printed excluding the nul character
+ * _printf - mimic printf from stdio
+ * Description: produces output according to a format
+ * write output to stdout, the standard output stream
+ * @format: character string composed of zero or more directives
+ *
+ * Return: the number of characters printed
+ * (excluding the null byte used to end output to strings)
+ * return -1 for incomplete identifier error
  */
 
 int _printf(const char *format, ...)
 {
 	unsigned int i;
-	int printedChar = 0, printedIdentifier = 0 ;
+	int identifierPrinted = 0, charPrinted = 0;
+	va_list arg;
 
-	va_list args;
-
-	va_start(args, format);
-
+	va_start(arg, format);
 	if (format == NULL)
 		return (-1);
-	
-	for ( i = 0; format[i] != '\0'; i++)
-        {
-		if ( format[i] != '%' )
+
+	for (i = 0; format[i] != '\0'; i++)
+	{
+		if (format[i] != '%')
 		{
 			_putchar(format[i]);
-			printedChar++;
+			charPrinted++;
 			continue;
 		}
-		
-		if (format[i] == '%')
+		if (format[i + 1] == '%')
 		{
 			_putchar('%');
-			printedChar++;
+			charPrinted++;
+			i++;
 			continue;
 		}
-
 		if (format[i + 1] == '\0')
 			return (-1);
 
+		identifierPrinted = printIdentifiers(format[i + 1], arg);
+		if (identifierPrinted == -1 || identifierPrinted != 0)
+			i++;
+		if (identifierPrinted > 0)
+			charPrinted += identifierPrinted;
 
-	printedIdentifier = printIdentifiers ( format[i + 1] , args);
-
-	if (printedIdentifier == -1 || printedIdentifier != 0)
-		i++;
-	if (printedIdentifier == 0)
-		printedChar += printedIdentifier;
-	if(printedIdentifier == 0)
-	{
-		_putchar('%');
-		printedChar++;
+		if (identifierPrinted == 0)
+		{
+			_putchar('%');
+			charPrinted++;
+		}
 	}
-     }
-	va_end(args);
-	return (printedChar);
+	va_end(arg);
+	return (charPrinted);
 }
-
